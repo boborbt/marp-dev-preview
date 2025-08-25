@@ -110,22 +110,19 @@ async function renderMarp() {
           }
         };
 
-        document.addEventListener('DOMContentLoaded', () => {
-          const slides = Array.from(document.querySelectorAll('section'));
-          const commandPrompt = document.getElementById('command-prompt');
-          let lastKey = '';
-          let command = '';
-          let commandMode = false;
+        let lastKey = '';
+        let command = '';
+        let commandMode = false;
 
-          function updatePrompt(isError = false) {
+        document.addEventListener('DOMContentLoaded', () => {
+          const slides = Array.from(document.querySelectorAll('section[id]'));
+          const commandPrompt = document.getElementById('command-prompt');
+
+          function updatePrompt(text, isError = false) {
             if (commandMode) {
               commandPrompt.style.display = 'block';
-              if (isError) {
-                commandPrompt.style.color = 'red';
-              } else {
-                commandPrompt.style.color = 'white';
-              }
-              commandPrompt.textContent = ':' + command;
+              commandPrompt.textContent = text;
+              commandPrompt.style.color = isError ? 'red' : 'white';
             } else {
               commandPrompt.style.display = 'none';
               commandPrompt.style.color = 'white'; // Reset color when hidden
@@ -140,26 +137,25 @@ async function renderMarp() {
                   slides[slideNumber - 1].scrollIntoView({ behavior: 'smooth' });
                   commandMode = false;
                   command = '';
-                  updatePrompt();
+                  updatePrompt(':' + command); // Reset to normal prompt
                 } else {
-                  commandPrompt.textContent = 'Error: Slide not found.';
-                  updatePrompt(true);
+                  updatePrompt(\`Error: Slide not found.\`, true); // Pass message and error flag
                   setTimeout(() => {
                     commandMode = false;
                     command = '';
-                    updatePrompt();
+                    updatePrompt(':' + command); // Reset to normal prompt
                   }, 2000);
                 }
               } else if (e.key === 'Backspace') {
                 command = command.slice(0, -1);
-                updatePrompt();
+                updatePrompt(':' + command);
               } else if (e.key.length === 1 && !isNaN(parseInt(e.key,10))) {
                 command += e.key;
-                updatePrompt();
+                updatePrompt(':' + command);
               } else if (e.key === 'Escape') {
                   commandMode = false;
                   command = '';
-                  updatePrompt();
+                  updatePrompt(':' + command);
               }
               return;
             }
@@ -184,7 +180,7 @@ async function renderMarp() {
               commandMode = true;
               command = '';
               lastKey = '';
-              updatePrompt();
+              updatePrompt(':' + command);
             } else {
               lastKey = '';
             }
