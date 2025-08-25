@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Marp } from '@marp-team/marp-core';
 import { promises as fs } from 'fs';
 import http from 'http';
