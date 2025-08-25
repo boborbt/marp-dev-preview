@@ -86,6 +86,12 @@ async function renderMarp() {
     <head>
       <style>
         ${css}
+	svg[data-marpit-svg] {
+	  margin-bottom:20px !important;
+	  border: 1px solid gray;
+	  border-radius: 10px;
+	  box-shadow: 2px 2px 6px rgba(0,0,0,0.3); 
+	}
         #command-prompt {
           position: fixed;
           bottom: 20px;
