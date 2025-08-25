@@ -92,6 +92,25 @@ async function renderMarp() {
 	  border-radius: 10px;
 	  box-shadow: 2px 2px 6px rgba(0,0,0,0.3); 
 	}
+	#help-box table td, #help-box table th {
+	  padding: 0 15px 0 15px;
+	}
+	#help-box {
+	  position: fixed;
+	  top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background-color: rgba(0, 0, 0, 0.8);
+          color: white;
+          padding: 20px;
+          border-radius: 10px;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          z-index: 1001;
+          display: none; /* Initially hidden */
+          box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+          max-width: 400px;
+          text-align: left;
+	}
         #command-prompt {
           position: fixed;
           bottom: 20px;
@@ -123,6 +142,7 @@ async function renderMarp() {
         document.addEventListener('DOMContentLoaded', () => {
           const slides = Array.from(document.querySelectorAll('section[id]'));
           const commandPrompt = document.getElementById('command-prompt');
+	  const helpBox = document.getElementById('help-box');
 
           function updatePrompt(text, isError = false) {
             if (commandMode) {
@@ -187,6 +207,9 @@ async function renderMarp() {
               command = '';
               lastKey = '';
               updatePrompt(':' + command);
+	    } else if (e.key === '?') {
+	      helpBox.style.display = helpBox.style.display === 'none' ? 'block' : 'none';
+	      lastKey = ''; // Reset lastKey to prevent unintended 'gg'
             } else {
               lastKey = '';
             }
@@ -196,6 +219,16 @@ async function renderMarp() {
     </head>
     <body>
       ${html}
+      <div id="help-box">
+        <h3>Key Bindings</h3>
+	<table>
+	<tr><th>Key</th><th>Action</th></tr> 
+        <tr><td><kbd>gg</kbd> or <kbd>Home</kbd></td><td>Go to first slide</td></tr>
+        <tr><td><kbd>G</kbd> or <kbd>End</kbd></td><td>Go to last slide</td></tr>
+        <tr><td><kbd>:&lt;number&gt</kbd></td><td>Go to the given slide number</td></tr> 
+        <tr><td><kbd>?</kbd></td><td>Show/hide help</td></tr>
+	</table>
+      </div>
       <div id="command-prompt"></div>
     </body>
     </html>
