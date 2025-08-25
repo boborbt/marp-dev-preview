@@ -29,7 +29,7 @@ const argv = yargs(hideBin(process.argv))
 	.demandCommand(1, 'You must provide a markdown file.')
 	.argv;
 
-const markdownFile = argv._[0] || argv['markdown-file'];
+const markdownFile = argv._[0]
 const themeDir = argv.themeDir;
 const port = argv.port;
 
