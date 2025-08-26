@@ -14,6 +14,14 @@ The tool is mainly intended for slide deck authors who want to preview their sli
     *   `markdown-it-container`
     *   `markdown-it-mark`
     *   `markdown-it-footnote`
+ 
+## Usage via npx
+
+The simplest way to start the previewer is via npx:
+
+```bash
+npx marp-dev-preview --theme-dir <dir containing your themes> <your presentation>.md
+```
 
 ## Installation
 
@@ -34,7 +42,7 @@ npm install marp-dev-preview
 To start the preview server, run the `mp` command followed by your markdown file path:
 
 ```bash
-mp <path-to-your-markdown-file.md> [options]
+mp <path-to-your-markdown-file> [options]
 ```
 
 **Example:**
@@ -56,14 +64,6 @@ While viewing the presentation in your browser, in addition to the usual browser
 *   <kbd>G</kbd>: Go to the last slide.
 *   <kbd>:&lt;number&gt;</kbd>: Go to the specified slide number.
 *   <kbd>?</kbd>: Toggle the help box displaying key bindings.
-
-## Development
-
-If you are contributing to the development of this tool, you can run it locally using:
-
-```bash
-npm run preview -- <path-to-your-markdown-file.md>
-```
 
 ## License
 
