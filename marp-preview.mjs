@@ -217,6 +217,7 @@ async function renderMarp() {
           });
         });
       </script>
+      <meta charset="UTF-8">
     </head>
     <body>
       ${html}
@@ -240,7 +241,7 @@ const server = http.createServer(async (req, res) => {
 	try {
 		if (req.url === '/') {
 			const html = await renderMarp();
-			res.writeHead(200, { 'Content-Type': 'text/html' });
+			res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
 			res.end(html);
 		} else {
 			const assetPath = path.join(markdownDir, req.url);
