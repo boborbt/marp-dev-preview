@@ -5,20 +5,23 @@
   "main": "marp-dev-preview.mjs",
   "type": "module",
   "bin": {
-	"mdp":"./marp-dev-preview.mjs"
+    "mdp": "marp-dev-preview.mjs"
   },
   "scripts": {
-	"start": "node marp-dev-preview.mjs"
+    "start": "node marp-dev-preview.mjs"
   },
   "keywords": [
-	"marp",
-	"markdown",
-	"preview",
-	"cli"
-      ],
+    "marp",
+    "markdown",
+    "preview",
+    "cli"
+  ],
   "author": "Roberto Esposito",
   "license": "MIT",
-  "repository": "git@github.com:boborbt/marp-dev-preview.git",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/boborbt/marp-dev-preview.git"
+  },
   "bugs": "https://github.com/boborbt/marp-dev-preview/issues",
   "dependencies": {
     "@marp-team/marp-core": "^4.1.0",
