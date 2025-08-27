@@ -158,7 +158,7 @@ async function renderMarp() {
 	  function findSlideByString(string) {
 	    const lowerString = string.toLowerCase();
 	    let found = false;
-	    for (let i = 0; i < slides.length; i++) {
+	    for (let i = 0; i < slides.length && !found; i++) {
 	      if (slides[i].textContent.toLowerCase().includes(lowerString)) {
 		slides[i].scrollIntoView({ behavior: 'smooth' });
 		found = true;
