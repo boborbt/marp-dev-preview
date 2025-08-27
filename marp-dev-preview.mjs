@@ -12,54 +12,54 @@ import markdownItMark from 'markdown-it-mark';
 import markdownItContainer from 'markdown-it-container';
 
 const argv = yargs(hideBin(process.argv))
-	.usage('Usage: $0 <markdown-file> [options]')
-	.positional('markdown-file', {
-		describe: 'Path to the markdown file to preview',
-		type: 'string'
-	})
-	.option('theme-dir', {
-		alias: 't',
-		describe: 'Directory for custom themes',
-		type: 'string'
-	})
-	.option('port', {
-		alias: 'p',
-		describe: 'Port to listen on',
-		type: 'number',
-		default: 8080
-	})
-	.config('config', 'Path to a JSON config file')
-	.default('config', '.mp-config.json')
-	.demandCommand(1, 'You must provide a markdown file.')
-	.argv;
+  .usage('Usage: $0 <markdown-file> [options]')
+  .positional('markdown-file', {
+    describe: 'Path to the markdown file to preview',
+    type: 'string'
+  })
+  .option('theme-dir', {
+    alias: 't',
+    describe: 'Directory for custom themes',
+    type: 'string'
+  })
+  .option('port', {
+    alias: 'p',
+    describe: 'Port to listen on',
+    type: 'number',
+    default: 8080
+  })
+  .config('config', 'Path to a JSON config file')
+  .default('config', '.mp-config.json')
+  .demandCommand(1, 'You must provide a markdown file.')
+  .argv;
 
 const markdownFile = argv._[0]
 const themeDir = argv.themeDir;
 const port = argv.port;
 
 if (!markdownFile) {
-	console.error('Error: You must provide a path to a markdown file.');
-	process.exit(1);
+  console.error('Error: You must provide a path to a markdown file.');
+  process.exit(1);
 }
 
 const markdownDir = path.dirname(markdownFile);
 
 const mimeTypes = {
-	'.html': 'text/html',
-	'.js': 'text/javascript',
-	'.css': 'text/css',
-	'.json': 'application/json',
-	'.png': 'image/png',
-	'.jpg': 'image/jpeg',
-	'.gif': 'image/gif',
-	'.svg': 'image/svg+xml',
-	'.wav': 'audio/wav',
-	'.mp4': 'video/mp4',
-	'.woff': 'application/font-woff',
-	'.ttf': 'application/font-ttf',
-	'.eot': 'application/vnd.ms-fontobject',
-	'.otf': 'application/font-otf',
-	'.wasm': 'application/wasm'
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.wav': 'audio/wav',
+  '.mp4': 'video/mp4',
+  '.woff': 'application/font-woff',
+  '.ttf': 'application/font-ttf',
+  '.eot': 'application/vnd.ms-fontobject',
+  '.otf': 'application/font-otf',
+  '.wasm': 'application/wasm'
 };
 
 const wss = new WebSocketServer({ port: port + 1 });
@@ -67,28 +67,28 @@ const wss = new WebSocketServer({ port: port + 1 });
 let marp;
 
 async function initializeMarp() {
-	const options = { html: true, linkify: true, };
-	marp = new Marp(options)
-		.use(markdownItFootnote)
-		.use(markdownItMark)
-		.use(markdownItContainer, 'note');
+  const options = { html: true, linkify: true, };
+  marp = new Marp(options)
+    .use(markdownItFootnote)
+    .use(markdownItMark)
+    .use(markdownItContainer, 'note');
 
-	if (themeDir) {
-		const themeFiles = await fs.readdir(themeDir);
-		for (const file of themeFiles) {
-			if (path.extname(file) === '.css') {
-				const css = await fs.readFile(path.join(themeDir, file), 'utf8');
-				marp.themeSet.add(css);
-			}
-		}
-	}
+  if (themeDir) {
+    const themeFiles = await fs.readdir(themeDir);
+    for (const file of themeFiles) {
+      if (path.extname(file) === '.css') {
+	const css = await fs.readFile(path.join(themeDir, file), 'utf8');
+	marp.themeSet.add(css);
+      }
+    }
+  }
 }
 
 
 async function renderMarp() {
-	const md = await fs.readFile(markdownFile, 'utf8');
-	const { html, css } = marp.render(md);
-	return `
+  const md = await fs.readFile(markdownFile, 'utf8');
+  const { html, css } = marp.render(md);
+  return `
     <!DOCTYPE html>
     <html>
     <head>
@@ -166,7 +166,10 @@ async function renderMarp() {
 	    }
 	    if (!found) {
 	      console.error('No slide contains the string: ' + string);
+	      return false; 
 	    }
+
+	    return true;
 	  }
 
           ws.onmessage = (event) => {
@@ -278,69 +281,69 @@ async function renderMarp() {
 }
 
 const server = http.createServer(async (req, res) => {
+  try {
+    if (req.url === '/') {
+      const html = await renderMarp();
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(html);
+    } else if (req.url === '/api/command' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => {
+	body += chunk.toString();
+      });
+      req.on('end', () => {
 	try {
-		if (req.url === '/') {
-			const html = await renderMarp();
-			res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-			res.end(html);
-		} else if (req.url === '/api/command' && req.method === 'POST') {
-			let body = '';
-			req.on('data', chunk => {
-				body += chunk.toString();
-			});
-			req.on('end', () => {
-				try {
-					const command = JSON.parse(body);
-					for (const ws of wss.clients) {
-						ws.send(JSON.stringify(command));
-					}
-					res.writeHead(200, { 'Content-Type': 'application/json' });
-					res.end(JSON.stringify({ status: 'ok', command }));
-				} catch (e) {
-					res.writeHead(400, { 'Content-Type': 'application/json' });
-					res.end(JSON.stringify({ status: 'error', message: 'Invalid JSON' }));
-				}
-			});
-		} else {
-			const assetPath = path.join(markdownDir, req.url);
-			const ext = path.extname(assetPath);
-			const contentType = mimeTypes[ext] || 'application/octet-stream';
-
-			try {
-				const content = await fs.readFile(assetPath);
-				res.writeHead(200, { 'Content-Type': contentType });
-				res.end(content);
-			} catch (error) {
-				if (error.code === 'ENOENT') {
-					res.writeHead(404);
-					res.end('Not Found');
-				} else {
-					throw error;
-				}
-			}
-		}
-	} catch (error) {
-		console.error(error);
-		res.writeHead(500);
-		res.end('Internal Server Error');
+	  const command = JSON.parse(body);
+	  for (const ws of wss.clients) {
+	    ws.send(JSON.stringify(command));
+	  }
+	  res.writeHead(200, { 'Content-Type': 'application/json' });
+	  res.end(JSON.stringify({ status: 'ok', command }));
+	} catch (e) {
+	  res.writeHead(400, { 'Content-Type': 'application/json' });
+	  res.end(JSON.stringify({ status: 'error', message: 'Invalid JSON' }));
 	}
+      });
+    } else {
+      const assetPath = path.join(markdownDir, req.url);
+      const ext = path.extname(assetPath);
+      const contentType = mimeTypes[ext] || 'application/octet-stream';
+
+      try {
+	const content = await fs.readFile(assetPath);
+	res.writeHead(200, { 'Content-Type': contentType });
+	res.end(content);
+      } catch (error) {
+	if (error.code === 'ENOENT') {
+	  res.writeHead(404);
+	  res.end('Not Found');
+	} else {
+	  throw error;
+	}
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    res.writeHead(500);
+    res.end('Internal Server Error');
+  }
 });
 
 chokidar.watch(markdownFile).on('change', () => {
-	console.log(`File ${markdownFile} changed, reloading...`);
-	for (const ws of wss.clients) {
-		ws.send('reload');
-	}
+  console.log(`File ${markdownFile} changed, reloading...`);
+  for (const ws of wss.clients) {
+    ws.send('reload');
+  }
 });
 
 initializeMarp().then(() => {
-	server.listen(port, () => {
-		console.log(`Server listening on http://localhost:${port} for ${markdownFile}`);
-		if (themeDir) {
-			console.log(`Using custom themes from ${themeDir}`);
-		}
-	});
+  server.listen(port, () => {
+    console.log(`Server listening on http://localhost:${port} for ${markdownFile}`);
+    if (themeDir) {
+      console.log(`Using custom themes from ${themeDir}`);
+    }
+  });
 }).catch(error => {
-	console.error("Failed to initialize Marp:", error);
-	process.exit(1);
+    console.error("Failed to initialize Marp:", error);
+    process.exit(1);
 });
