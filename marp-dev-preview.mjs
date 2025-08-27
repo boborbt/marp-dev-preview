@@ -137,20 +137,54 @@ async function renderMarp() {
       </style>
       <script>
         const ws = new WebSocket('ws://localhost:${port + 1}');
-        ws.onmessage = (event) => {
-          if (event.data === 'reload') {
-            window.location.reload();
-          }
-        };
-
-        let lastKey = '';
-        let command = '';
-        let commandMode = false;
 
         document.addEventListener('DOMContentLoaded', () => {
           const slides = Array.from(document.querySelectorAll('section[id]'));
           const commandPrompt = document.getElementById('command-prompt');
 	  const helpBox = document.getElementById('help-box');
+
+          let lastKey = '';
+          let command = '';
+          let commandMode = false;
+
+          function goToSlide(slideNumber) {
+            if (!isNaN(slideNumber) && slideNumber > 0 && slideNumber <= slides.length) {
+              slides[slideNumber - 1].scrollIntoView({ behavior: 'smooth' });
+              return true;
+            }
+            return false;
+          }
+
+	  function findSlideByString(string) {
+	    const lowerString = string.toLowerCase();
+	    let found = false;
+	    for (let i = 0; i < slides.length; i++) {
+	      if (slides[i].textContent.toLowerCase().includes(lowerString)) {
+		slides[i].scrollIntoView({ behavior: 'smooth' });
+		found = true;
+	      }
+	    }
+	    if (!found) {
+	      console.error('No slide contains the string: ' + string);
+	    }
+	  }
+
+          ws.onmessage = (event) => {
+            if (event.data === 'reload') {
+              window.location.reload();
+              return;
+            }
+            try {
+              const data = JSON.parse(event.data);
+              if (data.command === 'goto' && data.slide) {
+                goToSlide(parseInt(data.slide, 10));
+              } else if (data.command === 'find' && data.string) {
+		findSlideByString(data.string);
+	      }
+            } catch (e) {
+              console.error('Failed to parse WebSocket message:', e);
+            }
+          };
 
           function updatePrompt(text, isError = false) {
             if (commandMode) {
@@ -167,11 +201,10 @@ async function renderMarp() {
             if (commandMode) {
               if (e.key === 'Enter') {
                 const slideNumber = parseInt(command, 10);
-                if (!isNaN(slideNumber) && slideNumber > 0 && slideNumber <= slides.length) {
-                  slides[slideNumber - 1].scrollIntoView({ behavior: 'smooth' });
+                if (goToSlide(slideNumber)) {
                   commandMode = false;
                   command = '';
-                  updatePrompt(':' + command); // Reset to normal prompt
+                  updatePrompt(':' + command);
                 } else {
                   updatePrompt(\`Error: Slide not found.\`, true); // Pass message and error flag
                   setTimeout(() => {
@@ -250,6 +283,24 @@ const server = http.createServer(async (req, res) => {
 			const html = await renderMarp();
 			res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
 			res.end(html);
+		} else if (req.url === '/api/command' && req.method === 'POST') {
+			let body = '';
+			req.on('data', chunk => {
+				body += chunk.toString();
+			});
+			req.on('end', () => {
+				try {
+					const command = JSON.parse(body);
+					for (const ws of wss.clients) {
+						ws.send(JSON.stringify(command));
+					}
+					res.writeHead(200, { 'Content-Type': 'application/json' });
+					res.end(JSON.stringify({ status: 'ok', command }));
+				} catch (e) {
+					res.writeHead(400, { 'Content-Type': 'application/json' });
+					res.end(JSON.stringify({ status: 'error', message: 'Invalid JSON' }));
+				}
+			});
 		} else {
 			const assetPath = path.join(markdownDir, req.url);
 			const ext = path.extname(assetPath);

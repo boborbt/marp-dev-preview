@@ -65,6 +65,22 @@ While viewing the presentation in your browser, in addition to the usual browser
 *   <kbd>:&lt;number&gt;</kbd>: Go to the specified slide number.
 *   <kbd>?</kbd>: Toggle the help box displaying key bindings.
 
+## Integration with other tools
+
+The tool can respond to http requests to change slides and to scroll to a slide containing a given text. Any http client can be used to send such requests, e.g.:
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"command": "find", "string": "my awesome text"}' http://localhost:8080/api/command
+```
+would scroll to the first slide containing "my awesome text".
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"command": "goto", "slide": 3}' http://localhost:8080/api/command
+````
+
+would go to slide 3.
+
+
 ## License
 
 This project is licensed under the MIT License - see the `LICENSE` file for details.
