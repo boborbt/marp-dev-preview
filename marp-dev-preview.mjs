@@ -7,6 +7,9 @@ import chokidar from 'chokidar';
 import { WebSocketServer } from 'ws';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import markdownItFootnote from 'markdown-it-footnote';
+import markdownItMark from 'markdown-it-mark';
+import markdownItContainer from 'markdown-it-container';
 
 const argv = yargs(hideBin(process.argv))
 	.usage('Usage: $0 <markdown-file> [options]')
@@ -65,7 +68,11 @@ let marp;
 
 async function initializeMarp() {
 	const options = { html: true, linkify: true, };
-	marp = new Marp(options);
+	marp = new Marp(options)
+		.use(markdownItFootnote)
+		.use(markdownItMark)
+		.use(markdownItContainer, 'note');
+
 	if (themeDir) {
 		const themeFiles = await fs.readdir(themeDir);
 		for (const file of themeFiles) {

@@ -10,7 +10,7 @@ The tool is mainly intended for slide deck authors who want to preview their sli
 *   Automatic browser reload on file changes.
 *   Custom theme support.
 *   Keyboard navigation for slides.
-*   Also installs and uses the following markdown-it plugins:
+*   Also installs and uses the following markdown-it plugins (it's easy to add more if needed):
     *   `markdown-it-container`
     *   `markdown-it-mark`
     *   `markdown-it-footnote`
@@ -39,16 +39,16 @@ npm install marp-dev-preview
 
 ## Usage
 
-To start the preview server, run the `mp` command followed by your markdown file path:
+To start the preview server, run the `mdp` command followed by your markdown file path:
 
 ```bash
-mp <path-to-your-markdown-file> [options]
+mdp <path-to-your-markdown-file> [options]
 ```
 
 **Example:**
 
 ```bash
-mp my-slides/presentation.md --port 3000 --theme-dir my-themes
+mdp my-slides/presentation.md --port 3000 --theme-dir my-themes
 ```
 
 ### Options
