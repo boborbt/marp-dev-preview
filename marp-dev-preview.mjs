@@ -10,6 +10,7 @@ import { hideBin } from 'yargs/helpers';
 import markdownItFootnote from 'markdown-it-footnote';
 import markdownItMark from 'markdown-it-mark';
 import markdownItContainer from 'markdown-it-container';
+import morphdom from 'morphdom';
 
 const argv = yargs(hideBin(process.argv))
   .usage('Usage: $0 <markdown-file> [options]')
@@ -77,8 +78,8 @@ async function initializeMarp() {
     const themeFiles = await fs.readdir(themeDir);
     for (const file of themeFiles) {
       if (path.extname(file) === '.css') {
-	const css = await fs.readFile(path.join(themeDir, file), 'utf8');
-	marp.themeSet.add(css);
+        const css = await fs.readFile(path.join(themeDir, file), 'utf8');
+        marp.themeSet.add(css);
       }
     }
   }
@@ -92,7 +93,7 @@ async function renderMarp() {
     <!DOCTYPE html>
     <html>
     <head>
-      <style>
+      <style id="marp-style">
         ${css}
 	svg[data-marpit-svg] {
 	  margin-bottom:20px !important;
@@ -135,6 +136,7 @@ async function renderMarp() {
           box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
       </style>
+      <script src="https://unpkg.com/morphdom@2.7.0/dist/morphdom-umd.min.js"></script>
       <script>
         const ws = new WebSocket('ws://localhost:${port + 1}');
 
@@ -160,8 +162,8 @@ async function renderMarp() {
 	    let found = false;
 	    for (let i = 0; i < slides.length && !found; i++) {
 	      if (slides[i].textContent.toLowerCase().includes(lowerString)) {
-		slides[i].scrollIntoView({ behavior: 'smooth' });
-		found = true;
+	        slides[i].scrollIntoView({ behavior: 'smooth' });
+	        found = true;
 	      }
 	    }
 	    if (!found) {
@@ -173,13 +175,14 @@ async function renderMarp() {
 	  }
 
           ws.onmessage = (event) => {
-            if (event.data === 'reload') {
-              window.location.reload();
-              return;
-            }
             try {
               const data = JSON.parse(event.data);
-              if (data.command === 'goto' && data.slide) {
+              if (data.type === 'update') {
+                const newBody = document.createElement('body');
+                newBody.innerHTML = data.html;
+                morphdom(document.body, newBody);
+                document.getElementById('marp-style').innerHTML = data.css;
+              } else if (data.command === 'goto' && data.slide) {
                 goToSlide(parseInt(data.slide, 10));
               } else if (data.command === 'find' && data.string) {
 		findSlideByString(data.string);
@@ -289,20 +292,20 @@ const server = http.createServer(async (req, res) => {
     } else if (req.url === '/api/command' && req.method === 'POST') {
       let body = '';
       req.on('data', chunk => {
-	body += chunk.toString();
+        body += chunk.toString();
       });
       req.on('end', () => {
-	try {
-	  const command = JSON.parse(body);
-	  for (const ws of wss.clients) {
-	    ws.send(JSON.stringify(command));
-	  }
-	  res.writeHead(200, { 'Content-Type': 'application/json' });
-	  res.end(JSON.stringify({ status: 'ok', command }));
-	} catch (e) {
-	  res.writeHead(400, { 'Content-Type': 'application/json' });
-	  res.end(JSON.stringify({ status: 'error', message: 'Invalid JSON' }));
-	}
+        try {
+          const command = JSON.parse(body);
+          for (const ws of wss.clients) {
+            ws.send(JSON.stringify(command));
+          }
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ status: 'ok', command }));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ status: 'error', message: 'Invalid JSON' }));
+        }
       });
     } else {
       const assetPath = path.join(markdownDir, req.url);
@@ -310,16 +313,16 @@ const server = http.createServer(async (req, res) => {
       const contentType = mimeTypes[ext] || 'application/octet-stream';
 
       try {
-	const content = await fs.readFile(assetPath);
-	res.writeHead(200, { 'Content-Type': contentType });
-	res.end(content);
+        const content = await fs.readFile(assetPath);
+        res.writeHead(200, { 'Content-Type': contentType });
+        res.end(content);
       } catch (error) {
-	if (error.code === 'ENOENT') {
-	  res.writeHead(404);
-	  res.end('Not Found');
-	} else {
-	  throw error;
-	}
+        if (error.code === 'ENOENT') {
+          res.writeHead(404);
+          res.end('Not Found');
+        } else {
+          throw error;
+        }
       }
     }
   } catch (error) {
@@ -329,10 +332,21 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-chokidar.watch(markdownFile).on('change', () => {
-  console.log(`File ${markdownFile} changed, reloading...`);
-  for (const ws of wss.clients) {
-    ws.send('reload');
+chokidar.watch(markdownFile).on('change', async () => {
+  console.log(`File ${markdownFile} changed, updating...`);
+  try {
+    const md = await fs.readFile(markdownFile, 'utf8');
+    const { html, css } = marp.render(md);
+    const message = JSON.stringify({
+      type: 'update',
+      html: html,
+      css: css
+    });
+    for (const ws of wss.clients) {
+      ws.send(message);
+    }
+  } catch (error) {
+    console.error('Error rendering or sending update:', error);
   }
 });
 
@@ -344,6 +358,6 @@ initializeMarp().then(() => {
     }
   });
 }).catch(error => {
-    console.error("Failed to initialize Marp:", error);
-    process.exit(1);
+  console.error("Failed to initialize Marp:", error);
+  process.exit(1);
 });

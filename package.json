@@ -29,6 +29,7 @@
     "markdown-it-container": "^4.0.0",
     "markdown-it-footnote": "^4.0.0",
     "markdown-it-mark": "^4.0.0",
+    "morphdom": "^2.7.7",
     "ws": "^8.18.3",
     "yargs": "^18.0.0"
   }
