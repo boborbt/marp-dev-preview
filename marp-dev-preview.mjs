@@ -11,6 +11,10 @@ import markdownItFootnote from 'markdown-it-footnote';
 import markdownItMark from 'markdown-it-mark';
 import markdownItContainer from 'markdown-it-container';
 import morphdom from 'morphdom';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const argv = yargs(hideBin(process.argv))
   .usage('Usage: $0 <markdown-file> [options]')
@@ -89,12 +93,7 @@ async function initializeMarp() {
 async function renderMarp() {
   const md = await fs.readFile(markdownFile, 'utf8');
   const { html, css } = marp.render(md);
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style id="marp-style">
-        ${css}
+  const customCss = `
 	svg[data-marpit-svg] {
 	  margin-bottom:20px !important;
 	  border: 1px solid gray;
@@ -135,134 +134,17 @@ async function renderMarp() {
           display: none;
           box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
-      </style>
+  `;
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="ws-port" content="${port + 1}">
+      <style id="marp-style">${css}</style>
+      <style id="custom-style">${customCss}</style>
       <script src="https://unpkg.com/morphdom@2.7.0/dist/morphdom-umd.min.js"></script>
-      <script>
-        const ws = new WebSocket('ws://localhost:${port + 1}');
-
-        document.addEventListener('DOMContentLoaded', () => {
-          const slides = Array.from(document.querySelectorAll('section[id]'));
-          const commandPrompt = document.getElementById('command-prompt');
-	  const helpBox = document.getElementById('help-box');
-
-          let lastKey = '';
-          let command = '';
-          let commandMode = false;
-
-          function goToSlide(slideNumber) {
-            if (!isNaN(slideNumber) && slideNumber > 0 && slideNumber <= slides.length) {
-              slides[slideNumber - 1].scrollIntoView({ behavior: 'smooth' });
-              return true;
-            }
-            return false;
-          }
-
-	  function findSlideByString(string) {
-	    const lowerString = string.toLowerCase();
-	    let found = false;
-	    for (let i = 0; i < slides.length && !found; i++) {
-	      if (slides[i].textContent.toLowerCase().includes(lowerString)) {
-	        slides[i].scrollIntoView({ behavior: 'smooth' });
-	        found = true;
-	      }
-	    }
-	    if (!found) {
-	      console.error('No slide contains the string: ' + string);
-	      return false; 
-	    }
-
-	    return true;
-	  }
-
-          ws.onmessage = (event) => {
-            try {
-              const data = JSON.parse(event.data);
-              if (data.type === 'update') {
-                const newBody = document.createElement('body');
-                newBody.innerHTML = data.html;
-                morphdom(document.body, newBody);
-                document.getElementById('marp-style').innerHTML = data.css;
-              } else if (data.command === 'goto' && data.slide) {
-                goToSlide(parseInt(data.slide, 10));
-              } else if (data.command === 'find' && data.string) {
-		findSlideByString(data.string);
-	      }
-            } catch (e) {
-              console.error('Failed to parse WebSocket message:', e);
-            }
-          };
-
-          function updatePrompt(text, isError = false) {
-            if (commandMode) {
-              commandPrompt.style.display = 'block';
-              commandPrompt.textContent = text;
-              commandPrompt.style.color = isError ? 'red' : 'white';
-            } else {
-              commandPrompt.style.display = 'none';
-              commandPrompt.style.color = 'white'; // Reset color when hidden
-            }
-          }
-
-          document.addEventListener('keydown', (e) => {
-            if (commandMode) {
-              if (e.key === 'Enter') {
-                const slideNumber = parseInt(command, 10);
-                if (goToSlide(slideNumber)) {
-                  commandMode = false;
-                  command = '';
-                  updatePrompt(':' + command);
-                } else {
-                  updatePrompt(\`Error: Slide not found.\`, true); // Pass message and error flag
-                  setTimeout(() => {
-                    commandMode = false;
-                    command = '';
-                    updatePrompt(':' + command); // Reset to normal prompt
-                  }, 2000);
-                }
-              } else if (e.key === 'Backspace') {
-                command = command.slice(0, -1);
-                updatePrompt(':' + command);
-              } else if (e.key.length === 1 && !isNaN(parseInt(e.key,10))) {
-                command += e.key;
-                updatePrompt(':' + command);
-              } else if (e.key === 'Escape') {
-                  commandMode = false;
-                  command = '';
-                  updatePrompt(':' + command);
-              }
-              return;
-            }
-
-            if (e.key === 'g') {
-              if (lastKey === 'g') {
-                // gg
-                if (slides.length > 0) {
-                  slides[0].scrollIntoView({ behavior: 'smooth' });
-                }
-                lastKey = '';
-              } else {
-                lastKey = 'g';
-                setTimeout(() => { lastKey = '' }, 500); // reset after 500ms
-              }
-            } else if (e.key === 'G') {
-              if (slides.length > 0) {
-                slides[slides.length - 1].scrollIntoView({ behavior: 'smooth' });
-              }
-              lastKey = '';
-            } else if (e.key === ':') {
-              commandMode = true;
-              command = '';
-              lastKey = '';
-              updatePrompt(':' + command);
-	    } else if (e.key === '?') {
-	      helpBox.style.display = helpBox.style.display === 'none' ? 'block' : 'none';
-	      lastKey = ''; // Reset lastKey to prevent unintended 'gg'
-            } else {
-              lastKey = '';
-            }
-          });
-        });
-      </script>
+      
       <meta charset="UTF-8">
     </head>
     <body>
@@ -289,6 +171,20 @@ const server = http.createServer(async (req, res) => {
       const html = await renderMarp();
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(html);
+    } else if (req.url === '/client.js') {
+      const clientJs = await fs.readFile(path.join(__dirname, 'client.js'), 'utf8');
+      res.writeHead(200, { 'Content-Type': 'text/javascript' });
+      res.end(clientJs);
+    } else if (req.url === '/api/reload' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk.toString();
+      });
+      req.on('end', async () => {
+        await reload(body);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ status: 'ok' }));
+      });
     } else if (req.url === '/api/command' && req.method === 'POST') {
       let body = '';
       req.on('data', chunk => {
@@ -332,11 +228,9 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-chokidar.watch(markdownFile).on('change', async () => {
-  console.log(`File ${markdownFile} changed, updating...`);
+async function reload(markdown) {
   try {
-    const md = await fs.readFile(markdownFile, 'utf8');
-    const { html, css } = marp.render(md);
+    const { html, css } = marp.render(markdown);
     const message = JSON.stringify({
       type: 'update',
       html: html,
@@ -348,6 +242,12 @@ chokidar.watch(markdownFile).on('change', async () => {
   } catch (error) {
     console.error('Error rendering or sending update:', error);
   }
+}
+
+chokidar.watch(markdownFile).on('change', async () => {
+  console.log(`File ${markdownFile} changed, updating...`);
+  const md = await fs.readFile(markdownFile, 'utf8');
+  await reload(md);
 });
 
 initializeMarp().then(() => {
