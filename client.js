@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const wsPort = document.querySelector('meta[name="ws-port"]').content;
   const ws = new WebSocket(`ws://localhost:${wsPort}`);
 
-  const slides = Array.from(document.querySelectorAll('section[id]'));
+  let slides = Array.from(document.querySelectorAll('section[id]'));
   const commandPrompt = document.getElementById('command-prompt');
   const helpBox = document.getElementById('help-box');
 
@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         newBody.innerHTML = data.html;
         morphdom(document.body, newBody);
         document.getElementById('marp-style').innerHTML = data.css;
+        slides = Array.from(document.querySelectorAll('section[id]'));
       } else if (data.command === 'goto' && data.slide) {
         goToSlide(parseInt(data.slide, 10));
       } else if (data.command === 'find' && data.string) {

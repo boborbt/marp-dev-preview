@@ -144,8 +144,8 @@ async function renderMarp() {
       <style id="marp-style">${css}</style>
       <style id="custom-style">${customCss}</style>
       <script src="https://unpkg.com/morphdom@2.7.0/dist/morphdom-umd.min.js"></script>
-      
-      <meta charset="UTF-8">
+      <script src="/client.js"></script>
+       <meta charset="UTF-8">
     </head>
     <body>
       ${html}
