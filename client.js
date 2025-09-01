@@ -53,10 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const data = JSON.parse(event.data);
       if (data.type === 'update') {
-        const newBody = document.createElement('body');
-        newBody.innerHTML = data.html;
-        morphdom(document.body, newBody);
-        document.getElementById('marp-style').innerHTML = data.css;
+        const marpContainer = document.getElementById('marp-container');
+        if (marpContainer) {
+          morphdom(marpContainer, `<div id="marp-container">${data.html}</div>`);
+        }
+        if (document.getElementById('marp-style').innerHTML !== data.css) {
+          document.getElementById('marp-style').innerHTML = data.css;
+        }
         slides = Array.from(document.querySelectorAll('section[id]'));
       } else if (data.command === 'goto' && data.slide) {
         goToSlide(parseInt(data.slide, 10));

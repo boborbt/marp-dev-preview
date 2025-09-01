@@ -148,7 +148,9 @@ async function renderMarp() {
        <meta charset="UTF-8">
     </head>
     <body>
-      ${html}
+      <div id="marp-container">
+        ${html}
+      </div>
       <div id="help-box">
         <h3>Key Bindings</h3>
 	<table>
@@ -181,9 +183,15 @@ const server = http.createServer(async (req, res) => {
         body += chunk.toString();
       });
       req.on('end', async () => {
-        await reload(body);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ status: 'ok' }));
+	console.debug("Reload request received");
+        const success = await reload(body);
+        if (success) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ status: 'ok' }));
+        } else {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ status: 'error', message: 'Failed to render markdown' }));
+        }
       });
     } else if (req.url === '/api/command' && req.method === 'POST') {
       let body = '';
@@ -239,8 +247,10 @@ async function reload(markdown) {
     for (const ws of wss.clients) {
       ws.send(message);
     }
+    return true;
   } catch (error) {
     console.error('Error rendering or sending update:', error);
+    return false;
   }
 }
 
