@@ -6,7 +6,8 @@ The tool is mainly intended for slide deck authors who want to preview their sli
 
 ## Features
 
-*   Live preview of Marp markdown files.
+*   Live preview of Marp markdown files, with position syncing.
+*   API to reload the slides using incremental updates.
 *   Automatic browser reload on file changes.
 *   Custom theme support.
 *   Keyboard navigation for slides.
