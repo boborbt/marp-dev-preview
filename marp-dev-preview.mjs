@@ -10,7 +10,6 @@ import { hideBin } from 'yargs/helpers';
 import markdownItFootnote from 'markdown-it-footnote';
 import markdownItMark from 'markdown-it-mark';
 import markdownItContainer from 'markdown-it-container';
-import morphdom from 'morphdom';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -274,7 +273,7 @@ async function reload(markdown) {
 }
 
 chokidar.watch(markdownFile).on('change', async () => {
-  console.log(`File ${markdownFile} changed, updating...`);
+  console.debug(`File ${markdownFile} changed, updating...`);
   const md = await fs.readFile(markdownFile, 'utf8');
   await reload(md);
 });
