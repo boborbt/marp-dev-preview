@@ -1,16 +1,13 @@
 #!/usr/bin/env node
-import { Marp } from '@marp-team/marp-core';
 import { promises as fs } from 'fs';
 import path from 'path';
 import chokidar from 'chokidar';
 import { WebSocketServer } from 'ws';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import markdownItFootnote from 'markdown-it-footnote';
-import markdownItMark from 'markdown-it-mark';
-import markdownItContainer from 'markdown-it-container';
 import { fileURLToPath } from 'url';
 import { createServer } from './server.mjs';
+import { initializeMarp, renderMarp as renderMarpInternal } from './marp-utils.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,30 +66,9 @@ const markdownDir = path.dirname(markdownFile);
 
 const wss = new WebSocketServer({ port: port + 1 });
 
-let marp;
-
-async function initializeMarp() {
-  const options = { html: true, linkify: true, };
-  marp = new Marp(options)
-    .use(markdownItFootnote)
-    .use(markdownItMark)
-    .use(markdownItContainer, 'note');
-
-  if (themeDir) {
-    const themeFiles = await fs.readdir(themeDir);
-    for (const file of themeFiles) {
-      if (path.extname(file) === '.css') {
-        const css = await fs.readFile(path.join(themeDir, file), 'utf8');
-        marp.themeSet.add(css);
-      }
-    }
-  }
-}
-
-
 async function renderMarp() {
   const md = await fs.readFile(markdownFile, 'utf8');
-  const { html, css } = marp.render(md);
+  const { html, css } = renderMarpInternal(md);
   const customCss = `
 	svg[data-marpit-svg] {
 	  margin-bottom:20px !important;
@@ -169,7 +145,7 @@ async function renderMarp() {
 
 async function reload(markdown) {
   try {
-    const { html, css } = marp.render(markdown);
+    const { html, css } = renderMarpInternal(markdown);
     const message = JSON.stringify({
       type: 'update',
       html: html,
@@ -191,8 +167,8 @@ chokidar.watch(markdownFile).on('change', async () => {
   await reload(md);
 });
 
-initializeMarp().then(() => {
-  const server = createServer(port, markdownFile, markdownDir, renderMarp, reload, wss, __dirname);
+initializeMarp(themeDir).then(() => {
+  createServer(port, markdownFile, markdownDir, renderMarp, reload, wss, __dirname);
   if (themeDir) {
     console.log(`Using custom themes from ${themeDir}`);
   }
