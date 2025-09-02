@@ -3,42 +3,17 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import chokidar from 'chokidar';
 import { WebSocketServer } from 'ws';
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
 import { fileURLToPath } from 'url';
+
+/* Sub-modules */
 import { createServer } from './server.mjs';
 import { initializeMarp, renderMarp as renderMarpInternal } from './marp-utils.mjs';
+import { parseArgs } from './args.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const argv = yargs(hideBin(process.argv))
-  .usage('Usage: $0 <markdown-file> [options]')
-  .positional('markdown-file', {
-    describe: 'Path to the markdown file to preview',
-    type: 'string'
-  })
-  .option('theme-dir', {
-    alias: 't',
-    describe: 'Directory for custom themes',
-    type: 'string'
-  })
-  .option('port', {
-    alias: 'p',
-    describe: 'Port to listen on',
-    type: 'number',
-    default: 8080
-  })
-  .option('verbose', {
-    alias: 'v',
-    describe: 'Enable verbose logging',
-    type: 'boolean',
-    default: false
-  })
-  .config('config', 'Path to a JSON config file')
-  .default('config', '.mp-config.json')
-  .demandCommand(1, 'You must provide a markdown file.')
-  .argv;
+const argv = parseArgs();
 
 const markdownFile = argv._[0]
 const themeDir = argv.themeDir;
