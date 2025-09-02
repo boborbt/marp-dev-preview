@@ -3,11 +3,7 @@ import { Marp } from '@marp-team/marp-core';
 
 jest.mock('@marp-team/marp-core', () => ({
   Marp: jest.fn(() => ({
-    use: jest.fn(() => ({
-      use: jest.fn(() => ({
-        use: jest.fn(),
-      })),
-    })),
+    use: jest.fn().mockReturnThis(),
     render: jest.fn(() => ({ html: '', css: '' })),
     themeSet: {
       add: jest.fn(),
@@ -16,8 +12,18 @@ jest.mock('@marp-team/marp-core', () => ({
 }));
 
 describe('Marp Utils', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should initialize Marp', async () => {
-    const marp = await initializeMarp();
+    await initializeMarp();
     expect(Marp).toHaveBeenCalled();
+  });
+
+  it('should render markdown', async () => {
+    const marp = await initializeMarp();
+    renderMarp('# Hello');
+    expect(marp.render).toHaveBeenCalledWith('# Hello');
   });
 });
