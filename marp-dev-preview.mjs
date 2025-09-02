@@ -33,6 +33,12 @@ const argv = yargs(hideBin(process.argv))
     type: 'number',
     default: 8080
   })
+  .option('verbose', {
+    alias: 'v',
+    describe: 'Enable verbose logging',
+    type: 'boolean',
+    default: false
+  })
   .config('config', 'Path to a JSON config file')
   .default('config', '.mp-config.json')
   .demandCommand(1, 'You must provide a markdown file.')
@@ -41,6 +47,19 @@ const argv = yargs(hideBin(process.argv))
 const markdownFile = argv._[0]
 const themeDir = argv.themeDir;
 const port = argv.port;
+const verbose = argv.verbose;
+
+if (argv.version) {
+  const pkg = JSON.parse(await fs.readFile(path.join(__dirname, 'package.json'), 'utf8'));
+  console.log(`marp-dev-preview version ${pkg.version}`);
+  process.exit(0);
+}
+
+if (verbose) {
+  console.debug = console.log;
+} else {
+  console.debug = () => { };
+}
 
 if (!markdownFile) {
   console.error('Error: You must provide a path to a markdown file.');
@@ -183,7 +202,7 @@ const server = http.createServer(async (req, res) => {
         body += chunk.toString();
       });
       req.on('end', async () => {
-	console.debug("Reload request received");
+        console.debug("Reload request received");
         const success = await reload(body);
         if (success) {
           res.writeHead(200, { 'Content-Type': 'application/json' });
