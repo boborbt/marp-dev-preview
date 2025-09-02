@@ -104,11 +104,16 @@ async function renderMarp() {
       </div>
       <div id="help-box">
         <h3>Key Bindings</h3>
+        <p>In addition to standard key bindings (e.g., Space, Page Down, Arrow Down, Page Up, Arrow Up), the following key bindings are available:</p>
 	<table>
 	<tr><th>Key</th><th>Action</th></tr> 
         <tr><td><kbd>gg</kbd> or <kbd>Home</kbd></td><td>Go to first slide</td></tr>
         <tr><td><kbd>G</kbd> or <kbd>End</kbd></td><td>Go to last slide</td></tr>
         <tr><td><kbd>:&lt;number&gt</kbd></td><td>Go to the given slide number</td></tr> 
+        <tr><td><kbd>^f</kbd></td><td>Forward one page</td></tr>
+        <tr><td><kbd>^b</kbd></td><td>Back one page</td></tr>
+        <tr><td><kbd>^d</kbd></td><td>Forward half a page</td></tr>
+        <tr><td><kbd>^u</kbd></td><td>Back half a page</td></tr>
         <tr><td><kbd>?</kbd></td><td>Show/hide help</td></tr>
 	</table>
       </div>

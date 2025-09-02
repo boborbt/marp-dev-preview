@@ -1,52 +1,62 @@
 # marp-dev-preview
 
-A CLI tool to preview Marp markdown files with live reloading and navigation features.
+A lightweight CLI tool for previewing **Marp markdown slide decks** with live reloading, navigation, and development-focused features.  
 
-The tool is mainly intended for slide deck authors who want to preview their slides in a web browser during development. In fact, while marp-cli provides a `-s` option to serve the slides, it is mainly intended for presenting the slides, not for development. This tool fills that gap by providing a live preview server presenting the slides similarly to how they are presented in the marp vs-code extension. 
+Unlike the `marp-cli -s` option—which is primarily meant for presenting—this tool is designed specifically for **authoring and iterating** on slides. It provides a live preview server similar to the Marp VS Code extension, but in a terminal-friendly, editor-agnostic way.  
 
-## Features
+Originally built as a dependency for the [marp-dev-preview.nvim](https://github.com/boborbt/marp-dev-preview.nvim) NeoVim plugin, it can also be used **standalone** or as a dependency in other projects.
 
-*   Live preview of Marp markdown files, with position syncing.
-*   API to reload the slides using incremental updates.
-*   Automatic browser reload on file changes.
-*   Custom theme support.
-*   Keyboard navigation for slides.
-*   Also installs and uses the following markdown-it plugins (it's easy to add more if needed):
-    *   `markdown-it-container`
-    *   `markdown-it-mark`
-    *   `markdown-it-footnote`
- 
-## Usage via npx
+---
 
-The simplest way to start the previewer is via npx:
+## ✨ Features
+
+- **Live preview** of Marp markdown files, with position syncing  
+- **Incremental updates API** for fast reloads  
+- **Automatic browser reload** on file changes  
+- **Custom theme support** (CSS-based themes)  
+- **Keyboard navigation** for slides  
+- Includes several **markdown-it plugins** (easy to extend):
+  - `markdown-it-container`
+  - `markdown-it-mark`
+  - `markdown-it-footnote`
+
+---
+
+## 🚦 Quick Start (via `npx`)
+
+The simplest way to run the previewer:  
 
 ```bash
-npx marp-dev-preview --theme-dir <dir containing your themes> <your presentation>.md
+npx marp-dev-preview --theme-dir <themes-dir> <presentation.md>
 ```
 
-## Installation
+---
 
-To install the package globally (recommended for CLI tools):
+## 📦 Installation
+
+Global install (recommended for CLI use):  
 
 ```bash
 npm install -g marp-dev-preview
 ```
 
-Alternatively, you can install it as a local dependency in your project:
+Or as a local project dependency:  
 
 ```bash
 npm install marp-dev-preview
 ```
 
-## Usage
+---
 
-To start the preview server, run the `mdp` command followed by your markdown file path:
+## ▶️ Usage
+
+Start the preview server with:  
 
 ```bash
-mdp <path-to-your-markdown-file> [options]
+mdp <path-to-markdown-file> [options]
 ```
 
-**Example:**
+**Example:**  
 
 ```bash
 mdp my-slides/presentation.md --port 3000 --theme-dir my-themes
@@ -54,34 +64,59 @@ mdp my-slides/presentation.md --port 3000 --theme-dir my-themes
 
 ### Options
 
-*   `-t, --theme-dir <path>`: Specify a directory for custom Marp themes (e.g., CSS files).
-*   `-p, --port <number>`: Specify the port for the preview server to listen on (default: `8080`).
+- `-t, --theme-dir <path>` — Path to custom Marp themes (CSS files)  
+- `-p, --port <number>` — Port for the preview server (default: `8080`)  
 
-## Keyboard Shortcuts
+---
 
-While viewing the presentation in your browser, in addition to the usual browser controls (page-up, page-down, home, end, etc.), you can use the following key bindings:
+## ⌨️ Keyboard Shortcuts
 
-*   <kbd>gg</kbd>: Go to the first slide.
-*   <kbd>G</kbd>: Go to the last slide.
-*   <kbd>:&lt;number&gt;</kbd>: Go to the specified slide number.
-*   <kbd>?</kbd>: Toggle the help box displaying key bindings.
+In addition to normal browser navigation keys (`Page Up`, `Page Down`, `Home`, `End`), the following bindings are available:
 
-## Integration with other tools
+- **Ctrl+f** — Forward one page  
+- **Ctrl+b** — Backward one page  
+- **Ctrl+d** — Forward half a page  
+- **Ctrl+u** — Backward half a page  
+- **gg** — First slide  
+- **G** — Last slide  
+- **:number** — Jump to slide `{number}`  
+- **?** — Toggle help overlay  
 
-The tool can respond to http requests to change slides and to scroll to a slide containing a given text. Any http client can be used to send such requests, e.g.:
+---
 
-```bash
-curl -X POST -H "Content-Type: application/json" -d '{"command": "find", "string": "my awesome text"}' http://localhost:8080/api/command
-```
-would scroll to the first slide containing "my awesome text".
+## 🔗 Integration with Other Tools
 
-```bash
-curl -X POST -H "Content-Type: application/json" -d '{"command": "goto", "slide": 3}' http://localhost:8080/api/command
-````
+The preview server exposes a simple **HTTP API** for controlling slides.  
 
-would go to slide 3.
+- Reload the document (the server will parse the received markdown content and incrementally update the presentation). 
+
+    ```bash
+    curl -X POST \
+         -H "Content-Type: text/markdown" \
+         -d "$(cat file-with-updated-content.md)" \ 
+         http://localhost:8080/api/reload
+    ```
+
+- Go to the first slide containing `"my awesome text"`:  
+    ```bash
+    curl -X POST \
+        -H "Content-Type: application/json" \
+        -d '{"command": "find", "string": "my awesome text"}' \
+        http://localhost:8080/api/command
+    ```
+
+- Jump directly to slide 3:  
+
+    ```bash
+    curl -X POST
+        -H "Content-Type: application/json" \
+        -d '{"command": "goto", "slide": 3}' \     
+        http://localhost:8080/api/command
+    ```
 
 
-## License
+---
 
-This project is licensed under the MIT License - see the `LICENSE` file for details.
+## 📄 License
+
+Licensed under the [MIT License](./LICENSE).  

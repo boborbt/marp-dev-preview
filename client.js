@@ -133,6 +133,24 @@ document.addEventListener('DOMContentLoaded', () => {
       command = '';
       lastKey = '';
       updatePrompt(':' + command);
+    } else if (e.key === 'j') {
+      window.scrollBy({ top: window.innerHeight * 0.1, behavior: 'smooth' });
+      lastKey = '';
+    } else if (e.key === 'k') {
+      window.scrollBy({ top: -window.innerHeight * 0.1, behavior: 'smooth' });
+      lastKey = '';
+    } else if (e.key === 'u' && e.ctrlKey) {
+      window.scrollBy({ top: -window.innerHeight * 0.5, behavior: 'smooth' });
+      lastKey = '';
+    } else if (e.key === 'd' && e.ctrlKey) {
+      window.scrollBy({ top: window.innerHeight * 0.5, behavior: 'smooth' });
+      lastKey = '';
+    } else if (e.key === 'f' && e.ctrlKey) {
+      window.scrollBy({ top: window.innerHeight * 0.9, behavior: 'smooth' });
+      lastKey = '';
+    } else if (e.key === 'b' && e.ctrlKey) {
+      window.scrollBy({ top: -window.innerHeight * 0.9, behavior: 'smooth' });
+      lastKey = '';
     } else if (e.key === '?') {
       helpBox.style.display = helpBox.style.display === 'none' ? 'block' : 'none';
       lastKey = ''; // Reset lastKey to prevent unintended 'gg'
