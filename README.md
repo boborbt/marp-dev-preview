@@ -84,35 +84,63 @@ In addition to normal browser navigation keys (`Page Up`, `Page Down`, `Home`, `
 
 ---
 
-## 🔗 Integration with Other Tools
+## 🔗 API Endpoints
 
-The preview server exposes a simple **HTTP API** for controlling slides.  
+The preview server exposes a simple **HTTP API** for controlling slides and content.
 
-- Reload the document (the server will parse the received markdown content and incrementally update the presentation). 
+### `POST /api/reload`
 
-    ```bash
-    curl -X POST \
-         -H "Content-Type: text/markdown" \
-         -d "$(cat file-with-updated-content.md)" \ 
-         http://localhost:8080/api/reload
-    ```
+Reloads the presentation with new markdown content. The server parses the received markdown, renders it into HTML, and broadcasts the changes to all connected clients. This is ideal for tools that need to push updates without requiring a full page refresh.
 
-- Go to the first slide containing `"my awesome text"`:  
-    ```bash
-    curl -X POST \
-        -H "Content-Type: application/json" \
-        -d '{"command": "find", "string": "my awesome text"}' \
-        http://localhost:8080/api/command
-    ```
+- **Request**:
+  - **Headers**: `Content-Type: text/markdown`
+  - **Body**: Raw markdown content.
 
-- Jump directly to slide 3:  
+- **Response**:
+  - `200 OK`: `{ "status": "ok" }` on success.
+  - `500 Internal Server Error`: `{ "status": "error", "message": "..." }` on failure.
 
-    ```bash
-    curl -X POST
-        -H "Content-Type: application/json" \
-        -d '{"command": "goto", "slide": 3}' \     
-        http://localhost:8080/api/command
-    ```
+- **Example**:
+  ```bash
+  curl -X POST \
+       -H "Content-Type: text/markdown" \
+       -d "$(cat path/to/your/slides.md)" \
+       http://localhost:8080/api/reload
+  ```
+
+### `POST /api/command`
+
+Sends a command to the browser to control the presentation's navigation. This allows external tools to programmatically change the visible slide.
+
+- **Request**:
+  - **Headers**: `Content-Type: application/json`
+  - **Body**: A JSON object describing the command.
+
+- **Response**:
+  - `200 OK`: `{ "status": "ok", "command": { ... } }` on success.
+  - `400 Bad Request`: `{ "status": "error", "message": "Invalid JSON" }` if the body is malformed.
+
+#### Supported Commands
+
+1.  **`goto`**: Jumps to a specific slide number.
+    - **Payload**: `{ "command": "goto", "slide": <number> }`
+    - **Example**:
+      ```bash
+      curl -X POST \
+           -H "Content-Type: application/json" \
+           -d '{"command": "goto", "slide": 5}' \
+           http://localhost:8080/api/command
+      ```
+
+2.  **`find`**: Searches for a string and jumps to the first slide containing it. The search is case-insensitive.
+    - **Payload**: `{ "command": "find", "string": "<search-term>" }`
+    - **Example**:
+      ```bash
+      curl -X POST \
+           -H "Content-Type: application/json" \
+           -d '{"command": "find", "string": "My Awesome Slide"}' \
+           http://localhost:8080/api/command
+      ```
 
 
 ---
