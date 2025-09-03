@@ -1,4 +1,4 @@
-import { createServer } from './server.mjs';
+import { createServer } from '../src/server.mjs';
 import http from 'http';
 
 jest.mock('http', () => ({

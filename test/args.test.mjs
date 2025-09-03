@@ -1,4 +1,4 @@
-import { parseArgs } from './args.mjs';
+import { parseArgs } from '../src/args.mjs';
 
 const mockArgv = {};
 const defaultValues = {};

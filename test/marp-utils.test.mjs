@@ -1,4 +1,4 @@
-import { initializeMarp, renderMarp } from './marp-utils.mjs';
+import { initializeMarp, renderMarp } from '../src/marp-utils.mjs';
 import { Marp } from '@marp-team/marp-core';
 
 jest.mock('@marp-team/marp-core', () => ({

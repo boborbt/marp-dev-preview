@@ -21,7 +21,7 @@ const port = argv.port;
 const verbose = argv.verbose;
 
 if (argv.version) {
-  const pkg = JSON.parse(await fs.readFile(path.join(__dirname, 'package.json'), 'utf8'));
+  const pkg = JSON.parse(await fs.readFile(path.join(__dirname, '..', 'package.json'), 'utf8'));
   console.log(`marp-dev-preview version ${pkg.version}`);
   process.exit(0);
 }

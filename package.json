@@ -2,13 +2,13 @@
   "name": "marp-dev-preview",
   "version": "0.1.5",
   "description": "A CLI tool to preview Marp markdown files.",
-  "main": "marp-dev-preview.mjs",
+  "main": "src/marp-dev-preview.mjs",
   "type": "module",
   "bin": {
-    "mdp": "marp-dev-preview.mjs"
+    "mdp": "src/marp-dev-preview.mjs"
   },
   "scripts": {
-    "start": "node marp-dev-preview.mjs",
+    "start": "node src/marp-dev-preview.mjs",
     "test": "jest"
   },
   "keywords": [
