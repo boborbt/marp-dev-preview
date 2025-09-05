@@ -53,6 +53,11 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const data = JSON.parse(event.data);
       if (data.type === 'update') {
+        // TODO: support force rebuild
+        // if(data.rebuild == true) {
+        //   window.location.reload();
+        //   return;
+        // }
         const marpContainer = document.getElementById('marp-container');
         if (marpContainer) {
           morphdom(marpContainer, `<div id="marp-container">${data.html}</div>`);
