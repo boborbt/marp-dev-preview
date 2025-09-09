@@ -70,6 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
         goToSlide(parseInt(data.slide, 10));
       } else if (data.command === 'find' && data.string) {
         findSlideByString(data.string);
+      } else if (data.command === 'close_preview') {
+        window.close();
       }
     } catch (e) {
       console.error('Failed to parse WebSocket message:', e);
