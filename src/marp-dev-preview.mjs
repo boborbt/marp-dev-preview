@@ -149,9 +149,6 @@ chokidar.watch(markdownFile).on('change', async () => {
 
 initializeMarp(themeDir).then(() => {
   createServer(port, markdownFile, markdownDir, renderMarp, reload, wss, __dirname);
-  if (themeDir) {
-    console.log(`Using custom themes from ${themeDir}`);
-  }
 }).catch(error => {
   console.error("Failed to initialize Marp:", error);
   process.exit(1);

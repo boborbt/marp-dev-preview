@@ -15,15 +15,31 @@ export async function initializeMarp(themeDir) {
     .use(markdownItMark)
     .use(markdownItContainer, 'note');
 
-  if (themeDir) {
-    const themeFiles = await fs.readdir(themeDir);
-    for (const file of themeFiles) {
-      if (path.extname(file) === '.css') {
-        const css = await fs.readFile(path.join(themeDir, file), 'utf8');
-        marp.themeSet.add(css);
-      }
+  if (!themeDir) {
+    return marp;
+  }
+
+  let stats = await fs.stat(themeDir).catch(() => null);
+  if (!stats) {
+    console.warn(`Theme directory "${themeDir}" does not exist.`);
+    return marp;
+  }
+
+  if(!stats.isDirectory()) {
+    console.warn(`Theme directory "${themeDir}" is not a directory.`);
+    return marp;
+  }
+
+  console.log("Loading themes from:", themeDir);
+
+  const themeFiles = await fs.readdir(themeDir);
+  for (const file of themeFiles) {
+    if (path.extname(file) === '.css') {
+      const css = await fs.readFile(path.join(themeDir, file), 'utf8');
+      marp.themeSet.add(css);
     }
   }
+
   return marp;
 }
 
