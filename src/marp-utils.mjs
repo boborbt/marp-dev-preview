@@ -22,19 +22,18 @@ export async function initializeMarp(themeSet) {
   console.log("Initializing Marp with themes...");
   for( const index in themeSet ) {
     let themeDir = themeSet[index];
-    console.log("Processing theme directory:", themeDir);
     let stats = await fs.stat(themeDir).catch(() => null);
     if (!stats) {
-      console.warn("   Theme directory does not exist.");
+      console.warn(`Theme ${themeDir} directory does not exist.`);
       continue;
     }
 
     if(!stats.isDirectory()) {
-      console.warn("   Path is not a directory.");
+      console.warn(`Path ${themeDir} is not a directory.`);
       continue;
     }
 
-    console.log("   Loading themes from:", themeDir);
+    console.log("Loading themes from ", themeDir);
 
     const themeFiles = await fs.readdir(themeDir);
     for (const file of themeFiles) {
