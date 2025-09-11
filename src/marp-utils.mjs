@@ -25,12 +25,12 @@ export async function initializeMarp(themeSet) {
     console.log("Processing theme directory:", themeDir);
     let stats = await fs.stat(themeDir).catch(() => null);
     if (!stats) {
-      console.warn(`   Theme directory does not exist.`);
+      console.warn("   Theme directory does not exist.");
       continue;
     }
 
     if(!stats.isDirectory()) {
-      console.warn(`   Path is not a directory.`);
+      console.warn("   Path is not a directory.");
       continue;
     }
 
