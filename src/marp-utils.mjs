@@ -8,35 +8,40 @@ import markdownItContainer from 'markdown-it-container';
 
 let marp;
 
-export async function initializeMarp(themeDir) {
+export async function initializeMarp(themeSet) {
   const options = { html: true, linkify: true, };
   marp = new Marp(options)
     .use(markdownItFootnote)
     .use(markdownItMark)
     .use(markdownItContainer, 'note');
 
-  if (!themeDir) {
+  if (!themeSet) {
     return marp;
   }
 
-  let stats = await fs.stat(themeDir).catch(() => null);
-  if (!stats) {
-    console.warn(`Theme directory "${themeDir}" does not exist.`);
-    return marp;
-  }
+  console.log("Initializing Marp with themes...");
+  for( const index in themeSet ) {
+    let themeDir = themeSet[index];
+    console.log("Processing theme directory:", themeDir);
+    let stats = await fs.stat(themeDir).catch(() => null);
+    if (!stats) {
+      console.warn(`   Theme directory does not exist.`);
+      continue;
+    }
 
-  if(!stats.isDirectory()) {
-    console.warn(`Theme directory "${themeDir}" is not a directory.`);
-    return marp;
-  }
+    if(!stats.isDirectory()) {
+      console.warn(`   Path is not a directory.`);
+      continue;
+    }
 
-  console.log("Loading themes from:", themeDir);
+    console.log("   Loading themes from:", themeDir);
 
-  const themeFiles = await fs.readdir(themeDir);
-  for (const file of themeFiles) {
-    if (path.extname(file) === '.css') {
-      const css = await fs.readFile(path.join(themeDir, file), 'utf8');
-      marp.themeSet.add(css);
+    const themeFiles = await fs.readdir(themeDir);
+    for (const file of themeFiles) {
+      if (path.extname(file) === '.css') {
+        const css = await fs.readFile(path.join(themeDir, file), 'utf8');
+        marp.themeSet.add(css);
+      }
     }
   }
 

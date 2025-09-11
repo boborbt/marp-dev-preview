@@ -15,8 +15,8 @@ const __dirname = path.dirname(__filename);
 
 const argv = parseArgs();
 
-const markdownFile = argv._[0]
-const themeDir = argv.themeDir;
+const markdownFile = argv.markdownFile;
+const themeSet = argv.themeSet;
 const port = argv.port;
 const verbose = argv.verbose;
 
@@ -147,7 +147,7 @@ chokidar.watch(markdownFile).on('change', async () => {
   await reload(md);
 });
 
-initializeMarp(themeDir).then(() => {
+initializeMarp(themeSet).then(() => {
   createServer(port, markdownFile, markdownDir, renderMarp, reload, wss, __dirname);
 }).catch(error => {
   console.error("Failed to initialize Marp:", error);

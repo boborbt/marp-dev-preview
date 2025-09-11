@@ -3,15 +3,16 @@ import { hideBin } from 'yargs/helpers';
 
 export function parseArgs() {
   return yargs(hideBin(process.argv))
-    .usage('Usage: $0 <markdown-file> [options]')
-    .positional('markdown-file', {
+    .usage('Usage: $0 [options]')
+    .option('markdown-file', {
+      alias: 'm',
       describe: 'Path to the markdown file to preview',
       type: 'string'
     })
-    .option('theme-dir', {
+    .option('theme-set', {
       alias: 't',
-      describe: 'Directory for custom themes',
-      type: 'string'
+      describe: 'Directories for custom themes',
+      type: 'array'
     })
     .option('port', {
       alias: 'p',
@@ -27,6 +28,5 @@ export function parseArgs() {
     })
     .config('config', 'Path to a JSON config file')
     .default('config', '.mp-config.json')
-    .demandCommand(1, 'You must provide a markdown file.')
     .argv;
 }
