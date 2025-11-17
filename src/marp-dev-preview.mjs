@@ -149,7 +149,14 @@ chokidar.watch(markdownFile).on('change', async () => {
 
 if (themeSet) {
   for (const themeDir of themeSet) {
-    chokidar.watch(path.join(themeDir, '*.css')).on('change', async (file) => {
+    console.debug('Watching themes:', path.join(themeDir, '*.css'))
+    chokidar.watch(themeDir).on('change', async (file) => {
+      // if not a css file, ignore
+      console.debug('Detected change in file :', file);
+      if (path.extname(file) !== '.css') return;
+
+      console.debug('Reloading theme from file :', file);
+
       console.debug(`Theme file ${file} changed, updating...`);
       await initializeMarp(themeSet);
       const md = await fs.readFile(markdownFile, 'utf8');
