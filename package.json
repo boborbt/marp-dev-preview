@@ -1,6 +1,6 @@
 {
   "name": "marp-dev-preview",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "A CLI tool to preview Marp markdown files.",
   "main": "src/marp-dev-preview.mjs",
   "type": "module",
