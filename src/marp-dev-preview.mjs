@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 
 /* Sub-modules */
 import { createServer } from './server.mjs';
-import { initializeMarp, renderMarp as renderMarpInternal } from './marp-utils.mjs';
+import { initializeMarp, getMarp } from './marp-utils.mjs';
 import { parseArgs } from './args.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -43,7 +43,7 @@ const wss = new WebSocketServer({ port: port + 1 });
 
 async function renderMarp() {
   const md = await fs.readFile(markdownFile, 'utf8');
-  const { html, css } = renderMarpInternal(md);
+  const { html, css } = getMarp().render(md);
   const customCss = `
 	svg[data-marpit-svg] {
 	  margin-bottom:20px !important;
@@ -125,7 +125,7 @@ async function renderMarp() {
 
 async function reload(markdown) {
   try {
-    const { html, css } = renderMarpInternal(markdown);
+    const { html, css } = getMarp().render(markdown);
     const message = JSON.stringify({
       type: 'update',
       html: html,
@@ -146,6 +146,17 @@ chokidar.watch(markdownFile).on('change', async () => {
   const md = await fs.readFile(markdownFile, 'utf8');
   await reload(md);
 });
+
+if (themeSet) {
+  for (const themeDir of themeSet) {
+    chokidar.watch(path.join(themeDir, '*.css')).on('change', async (file) => {
+      console.debug(`Theme file ${file} changed, updating...`);
+      await initializeMarp(themeSet);
+      const md = await fs.readFile(markdownFile, 'utf8');
+      await reload(md);
+    });
+  }
+}
 
 initializeMarp(themeSet).then(() => {
   createServer(port, markdownFile, markdownDir, renderMarp, reload, wss, __dirname);

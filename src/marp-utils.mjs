@@ -8,6 +8,11 @@ import markdownItContainer from 'markdown-it-container';
 
 let marp;
 
+export function getMarp() {
+  return marp;
+}
+
+
 export async function initializeMarp(themeSet) {
   const options = { html: true, linkify: true, };
   marp = new Marp(options)
@@ -48,6 +53,6 @@ export async function initializeMarp(themeSet) {
 }
 
 export function renderMarp(markdown) {
-  const { html, css } = marp.render(markdown);
+  const { html, css } = getMarp().render(markdown);
   return { html, css };
 }
