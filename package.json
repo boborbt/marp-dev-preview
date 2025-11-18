@@ -27,6 +27,7 @@
   "dependencies": {
     "@marp-team/marp-core": "^4.1.0",
     "chokidar": "^4.0.3",
+    "express": "^5.1.0",
     "markdown-it-container": "^4.0.0",
     "markdown-it-footnote": "^4.0.0",
     "markdown-it-mark": "^4.0.0",

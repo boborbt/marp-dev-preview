@@ -1,99 +1,56 @@
-
-import http from 'http';
-import { promises as fs } from 'fs';
+import express from 'express';
 import path from 'path';
+import { promises as fs } from 'fs';
 
-const mimeTypes = {
-  '.html': 'text/html',
-  '.js': 'text/javascript',
-  '.css': 'text/css',
-  '.json': 'application/json',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.gif': 'image/gif',
-  '.svg': 'image/svg+xml',
-  '.wav': 'audio/wav',
-  '.mp4': 'video/mp4',
-  '.woff': 'application/font-woff',
-  '.ttf': 'application/font-ttf',
-  '.eot': 'application/vnd.ms-fontobject',
-  '.otf': 'application/font-otf',
-  '.wasm': 'application/wasm'
-};
+export function createServer(markdownDir, renderMarp, reload, wss, __dirname) {
+  const app = express();
 
-export function createServer(port, markdownFile, markdownDir, renderMarp, reload, wss, __dirname) {
-  const server = http.createServer(async (req, res) => {
+  app.use(express.static(markdownDir));
+  app.use(express.text({ type: 'text/markdown' }));
+  app.use(express.json());
+
+  app.get('/', async (req, res) => {
     try {
-      if (req.url === '/') {
-        const html = await renderMarp();
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(html);
-      } else if (req.url === '/client.js') {
-        const clientJs = await fs.readFile(path.join(__dirname, 'client.js'), 'utf8');
-        res.writeHead(200, { 'Content-Type': 'text/javascript' });
-        res.end(clientJs);
-      } else if (req.url === '/api/reload' && req.method === 'POST') {
-        let body = '';
-        req.on('data', chunk => {
-          body += chunk.toString();
-        });
-        req.on('end', async () => {
-          console.debug("Reload request received");
-          const success = await reload(body);
-          if (success) {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ status: 'ok' }));
-          } else {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ status: 'error', message: 'Failed to render markdown' }));
-          }
-        });
-      } else if (req.url === '/api/command' && req.method === 'POST') {
-        let body = '';
-        req.on('data', chunk => {
-          body += chunk.toString();
-        });
-        req.on('end', () => {
-          try {
-            const command = JSON.parse(body);
-            for (const ws of wss.clients) {
-              ws.send(JSON.stringify(command));
-            }
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ status: 'ok', command }));
-          } catch (e) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ status: 'error', message: 'Invalid JSON' }));
-          }
-        });
-      } else {
-        const assetPath = path.join(markdownDir, req.url);
-        const ext = path.extname(assetPath);
-        const contentType = mimeTypes[ext] || 'application/octet-stream';
-
-        try {
-          const content = await fs.readFile(assetPath);
-          res.writeHead(200, { 'Content-Type': contentType });
-          res.end(content);
-        } catch (error) {
-          if (error.code === 'ENOENT') {
-            res.writeHead(404);
-            res.end('Not Found');
-          } else {
-            throw error;
-          }
-        }
-      }
+      const html = await renderMarp();
+      res.send(html);
     } catch (error) {
       console.error(error);
-      res.writeHead(500);
-      res.end('Internal Server Error');
+      res.status(500).send('Internal Server Error');
     }
   });
 
-  server.listen(port, () => {
-    console.log(`Server listening on http://localhost:${port} for ${markdownFile}`);
+  app.get('/client.js', async (req, res) => {
+    try {
+      const clientJs = await fs.readFile(path.join(__dirname, 'client.js'), 'utf8');
+      res.type('js').send(clientJs);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
+    }
   });
 
-  return server;
+  app.post('/api/reload', async (req, res) => {
+    console.debug("Reload request received");
+    console.debug(req.body)
+    const success = await reload(req.body);
+    if (success) {
+      res.json({ status: 'ok' });
+    } else {
+      res.status(500).json({ status: 'error', message: 'Failed to render markdown' });
+    }
+  });
+
+  app.post('/api/command', (req, res) => {
+    try {
+      const command = req.body;
+      for (const ws of wss.clients) {
+        ws.send(JSON.stringify(command));
+      }
+      res.json({ status: 'ok', command });
+    } catch (e) {
+      res.status(400).json({ status: 'error', message: 'Invalid JSON' });
+    }
+  });
+
+  return app;
 }

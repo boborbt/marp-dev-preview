@@ -2,6 +2,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import chokidar from 'chokidar';
+import http from 'http';
 import { WebSocketServer } from 'ws';
 import { fileURLToPath } from 'url';
 
@@ -39,7 +40,7 @@ if (!markdownFile) {
 
 const markdownDir = path.dirname(markdownFile);
 
-const wss = new WebSocketServer({ port: port + 1 });
+const wss = new WebSocketServer({ noServer: true });
 
 async function renderMarp() {
   const md = await fs.readFile(markdownFile, 'utf8');
@@ -91,7 +92,7 @@ async function renderMarp() {
     <!DOCTYPE html>
     <html>
     <head>
-      <meta name="ws-port" content="${port + 1}">
+      <meta name="ws-port" content="${port}">
       <style id="marp-style">${css}</style>
       <style id="custom-style">${customCss}</style>
       <script src="https://unpkg.com/morphdom@2.7.0/dist/morphdom-umd.min.js"></script>
@@ -166,7 +167,18 @@ if (themeSet) {
 }
 
 initializeMarp(themeSet).then(() => {
-  createServer(port, markdownFile, markdownDir, renderMarp, reload, wss, __dirname);
+  const app = createServer(markdownDir, renderMarp, reload, wss, __dirname);
+  const server = http.createServer(app);
+
+  server.on('upgrade', (request, socket, head) => {
+    wss.handleUpgrade(request, socket, head, ws => {
+      wss.emit('connection', ws, request);
+    });
+  });
+
+  server.listen(port, () => {
+    console.log(`Server listening on http://localhost:${port} for ${markdownFile}`);
+  });
 }).catch(error => {
   console.error("Failed to initialize Marp:", error);
   process.exit(1);

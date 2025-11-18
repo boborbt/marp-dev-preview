@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const wsPort = document.querySelector('meta[name="ws-port"]').content;
-  const ws = new WebSocket(`ws://localhost:${wsPort}`);
+  const wsHost = window.location.host;
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const ws = new WebSocket(`${wsProtocol}//${wsHost}`);
 
   let slides = Array.from(document.querySelectorAll('section[id]'));
   const commandPrompt = document.getElementById('command-prompt');

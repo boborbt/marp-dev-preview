@@ -1,24 +1,22 @@
+// This test uses a mock for the express module.
+// The mock is defined in __mocks__/express.js and configured in jest.config.mjs.
+// This is necessary because jest has issues with importing express, which is a CJS module,
+// in a project that uses ES modules ("type": "module" in package.json).
 import { createServer } from '../src/server.mjs';
-import http from 'http';
-
-jest.mock('http', () => ({
-  createServer: jest.fn(() => ({
-    listen: jest.fn(),
-  })),
-}));
 
 describe('Server', () => {
   it('should create a server', () => {
-    const port = 8080;
-    const markdownFile = 'test.md';
     const markdownDir = '.';
     const renderMarp = jest.fn();
     const reload = jest.fn();
     const wss = { clients: [] };
     const __dirname = '.';
 
-    createServer(port, markdownFile, markdownDir, renderMarp, reload, wss, __dirname);
+    const app = createServer(markdownDir, renderMarp, reload, wss, __dirname);
 
-    expect(http.createServer).toHaveBeenCalled();
+    expect(app).toBeDefined();
+    expect(typeof app.use).toBe('function');
+    expect(typeof app.get).toBe('function');
+    expect(typeof app.post).toBe('function');
   });
 });
