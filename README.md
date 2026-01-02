@@ -73,8 +73,8 @@ mdp my-slides/presentation.md --port 3000 --theme-dir my-themes
 
 In addition to normal browser navigation keys (`Page Up`, `Page Down`, `Home`, `End`), the following bindings are available:
 
-- **Ctrl+f** — Forward one page  
-- **Ctrl+b** — Backward one page  
+- **Ctrl+f** or **Ctrl+n** — Forward one page  
+- **Ctrl+b** or **Ctrl+p** — Backward one page  
 - **Ctrl+d** — Forward half a page  
 - **Ctrl+u** — Backward half a page  
 - **gg** — First slide  
