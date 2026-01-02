@@ -153,10 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (e.key === 'd' && e.ctrlKey) {
       window.scrollBy({ top: window.innerHeight * 0.5, behavior: 'smooth' });
       lastKey = '';
-    } else if (e.key === 'f' && e.ctrlKey) {
+    } else if ((e.key === 'f' || e.key === 'n') && e.ctrlKey) {
       window.scrollBy({ top: window.innerHeight * 0.9, behavior: 'smooth' });
       lastKey = '';
-    } else if (e.key === 'b' && e.ctrlKey) {
+    } else if ((e.key === 'b' || e.key === 'p') && e.ctrlKey) {
       window.scrollBy({ top: -window.innerHeight * 0.9, behavior: 'smooth' });
       lastKey = '';
     } else if (e.key === '?') {
