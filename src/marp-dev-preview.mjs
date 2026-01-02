@@ -111,10 +111,10 @@ async function renderMarp() {
         <tr><td><kbd>gg</kbd> or <kbd>Home</kbd></td><td>Go to first slide</td></tr>
         <tr><td><kbd>G</kbd> or <kbd>End</kbd></td><td>Go to last slide</td></tr>
         <tr><td><kbd>:&lt;number&gt</kbd></td><td>Go to the given slide number</td></tr> 
-        <tr><td><kbd>^f</kbd> or <kbd>^n</kbd></td><td>Forward one page</td></tr>
-        <tr><td><kbd>^b</kbd> or <kbd>^p</kbd></td><td>Back one page</td></tr>
-        <tr><td><kbd>^d</kbd></td><td>Forward half a page</td></tr>
-        <tr><td><kbd>^u</kbd></td><td>Back half a page</td></tr>
+        <tr><td><kbd>^f</kbd></td><td>Forward one page</td></tr>
+        <tr><td><kbd>^b</kbd></td><td>Back one page</td></tr>
+        <tr><td><kbd>^d</kbd> or <kbd>^n</kbd></td><td>Forward half a page</td></tr>
+        <tr><td><kbd>^u</kbd> or <kbd>^p</kbd></td><td>Back half a page</td></tr>
         <tr><td><kbd>?</kbd></td><td>Show/hide help</td></tr>
 	</table>
       </div>
