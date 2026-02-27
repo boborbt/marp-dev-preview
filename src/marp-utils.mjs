@@ -13,12 +13,15 @@ export function getMarp() {
 }
 
 
-export async function initializeMarp(themeSet) {
+export async function initializeMarp(themeSet, containers) {
   const options = { html: true, linkify: true, };
   marp = new Marp(options)
     .use(markdownItFootnote)
-    .use(markdownItMark)
-    .use(markdownItContainer, 'note');
+    .use(markdownItMark);
+
+  for (const container of containers) {
+    marp = marp.use(markdownItContainer, container);
+  }
 
   if (!themeSet) {
     return marp;

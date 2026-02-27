@@ -20,6 +20,7 @@ const markdownFile = argv.markdownFile;
 const themeSet = argv.themeSet;
 const port = argv.port;
 const verbose = argv.verbose;
+const containers = argv.containers;
 
 if (argv.version) {
   const pkg = JSON.parse(await fs.readFile(path.join(__dirname, '..', 'package.json'), 'utf8'));
@@ -159,14 +160,14 @@ if (themeSet) {
       console.debug('Reloading theme from file :', file);
 
       console.debug(`Theme file ${file} changed, updating...`);
-      await initializeMarp(themeSet);
+      await initializeMarp(themeSet, containers);
       const md = await fs.readFile(markdownFile, 'utf8');
       await reload(md);
     });
   }
 }
 
-initializeMarp(themeSet).then(() => {
+initializeMarp(themeSet, containers).then(() => {
   const app = createServer(markdownDir, renderMarp, reload, wss, __dirname);
   const server = http.createServer(app);
 

@@ -9,6 +9,12 @@ export function parseArgs() {
       describe: 'Path to the markdown file to preview',
       type: 'string'
     })
+    .option('containers', {
+      alias: 'c',
+      describe: 'containers for the markdown-it-containers plugin',
+      type: 'array',
+      default: ["note", "info", "warning", "details"]
+    })
     .option('theme-set', {
       alias: 't',
       describe: 'Directories for custom themes',
