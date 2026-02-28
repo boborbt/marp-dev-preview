@@ -13,7 +13,7 @@ export function parseArgs() {
       alias: 'c',
       describe: 'containers for the markdown-it-containers plugin',
       type: 'array',
-      default: ["note", "info", "warning", "details"]
+      default: ["note", "info", "warn", "important"]
     })
     .option('theme-set', {
       alias: 't',
