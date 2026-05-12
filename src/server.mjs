@@ -2,9 +2,12 @@ import express from 'express';
 import path from 'path';
 import { promises as fs } from 'fs';
 
-export function createServer(markdownDir, renderMarp, reload, wss, __dirname) {
+export function createServer(markdownDir, themeDirs, renderMarp, reload, wss, __dirname) {
   const app = express();
 
+  for (const themeDir of themeDirs) {
+    app.use(express.static(themeDir));
+  }
   app.use(express.static(markdownDir));
   app.use(express.text({ type: 'text/markdown' }));
   app.use(express.json());

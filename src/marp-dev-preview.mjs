@@ -168,7 +168,7 @@ if (themeSet) {
 }
 
 initializeMarp(themeSet, containers).then(() => {
-  const app = createServer(markdownDir, renderMarp, reload, wss, __dirname);
+  const app = createServer(markdownDir, themeSet ?? [], renderMarp, reload, wss, __dirname);
   const server = http.createServer(app);
 
   server.on('upgrade', (request, socket, head) => {

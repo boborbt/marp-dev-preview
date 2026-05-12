@@ -13,7 +13,7 @@ export function getMarp() {
 }
 
 
-export async function initializeMarp(themeSet, containers) {
+export async function initializeMarp(themeSet, containers = []) {
   const options = { html: true, linkify: true, };
   marp = new Marp(options)
     .use(markdownItFootnote)
