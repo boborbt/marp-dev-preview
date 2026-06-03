@@ -27,7 +27,7 @@ Originally built as a dependency for the [marp-dev-preview.nvim](https://github.
 The simplest way to run the previewer:  
 
 ```bash
-npx marp-dev-preview --theme-dir <themes-dir> <presentation.md>
+npx marp-dev-preview --markdown-file <presentation.md> --theme-set <themes-dir>
 ```
 
 ---
@@ -53,19 +53,59 @@ npm install marp-dev-preview
 Start the preview server with:  
 
 ```bash
-mdp <path-to-markdown-file> [options]
+mdp [options]
 ```
 
 **Example:**  
 
 ```bash
-mdp my-slides/presentation.md --port 3000 --theme-dir my-themes
+mdp --markdown-file my-slides/presentation.md --port 3000 --theme-set my-themes
 ```
 
 ### Options
 
-- `-t, --theme-dir <path>` — Path to custom Marp themes (CSS files)  
+- `-m, --markdown-file <path>` — Path to the markdown file to preview
+- `-t, --theme-set <path...>` — One or more directories containing custom Marp themes (CSS files)
+- `--theme-dir <path...>` — Alias for `--theme-set`
 - `-p, --port <number>` — Port for the preview server (default: `8080`)  
+- `-c, --containers <name...>` — Container names to register for `markdown-it-container`
+- `-v, --verbose` — Enable verbose logging
+- `--config <path>` — Path to a JSON config file (default: `.mp-config.json`)
+- `--example-config` — Print an example JSON config file and exit
+
+### Configuration File
+
+Options can be loaded from a JSON config file. If `.mp-config.json` is present in the current working directory, it is read automatically without passing `--config`. Command-line flags override values from that file.
+
+Example `.mp-config.json`:
+
+```json
+{
+  "markdown-file": "my-slides/presentation.md",
+  "theme-set": ["my-themes"],
+  "port": 3000,
+  "verbose": true,
+  "containers": ["note", "info", "warn", "important"]
+}
+```
+
+Run and auto-load `.mp-config.json` if it exists:
+
+```bash
+mdp
+```
+
+Or point to a different file:
+
+```bash
+mdp --config ./preview-config.json
+```
+
+Print an example config file:
+
+```bash
+mdp --example-config
+```
 
 ---
 

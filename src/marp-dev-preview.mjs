@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 /* Sub-modules */
 import { createServer } from './server.mjs';
 import { initializeMarp, getMarp } from './marp-utils.mjs';
-import { parseArgs } from './args.mjs';
+import { exampleConfig, parseArgs } from './args.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +25,11 @@ const containers = argv.containers;
 if (argv.version) {
   const pkg = JSON.parse(await fs.readFile(path.join(__dirname, '..', 'package.json'), 'utf8'));
   console.log(`marp-dev-preview version ${pkg.version}`);
+  process.exit(0);
+}
+
+if (argv.exampleConfig) {
+  console.log(JSON.stringify(exampleConfig, null, 2));
   process.exit(0);
 }
 

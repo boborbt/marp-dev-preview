@@ -3,13 +3,20 @@ import { parseArgs } from '../src/args.mjs';
 const mockArgv = {};
 const defaultValues = {};
 
+function mockToCamelCase(name) {
+  return name.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
 jest.mock('yargs', () => {
   const yargsMock = jest.fn(() => yargsMock);
   yargsMock.usage = jest.fn().mockReturnThis();
+  yargsMock.parserConfiguration = jest.fn().mockReturnThis();
+  yargsMock.example = jest.fn().mockReturnThis();
   yargsMock.positional = jest.fn().mockReturnThis();
   yargsMock.option = jest.fn().mockImplementation((name, options) => {
     if (options.default !== undefined) {
       defaultValues[name] = options.default;
+      defaultValues[mockToCamelCase(name)] = options.default;
     }
     return yargsMock;
   });
@@ -18,12 +25,25 @@ jest.mock('yargs', () => {
     defaultValues[name] = value;
     return yargsMock;
   });
+  yargsMock.middleware = jest.fn().mockImplementation((fn) => {
+    yargsMock.__middleware = fn;
+    return yargsMock;
+  });
   yargsMock.demandCommand = jest.fn().mockReturnThis();
   Object.defineProperty(yargsMock, 'argv', {
-    get: () => ({
-      ...defaultValues,
-      ...mockArgv,
-    }),
+    get: () => {
+      const argv = {
+        ...defaultValues,
+        ...mockArgv,
+      };
+      if (!Array.isArray(argv._)) {
+        argv._ = [];
+      }
+      if (yargsMock.__middleware) {
+        yargsMock.__middleware(argv);
+      }
+      return argv;
+    },
   });
   return yargsMock;
 });
@@ -71,14 +91,21 @@ describe('Args', () => {
   it('should capture markdown file positional argument', () => {
     mockArgv._ = ['my-presentation.md'];
     const argv = parseArgs();
-    expect(argv._[0]).toBe('my-presentation.md');
+    expect(argv.markdownFile).toBe('my-presentation.md');
   });
 
-  it('should return theme-dir if specified', () => {
+  it('should return theme-set if specified', () => {
     mockArgv._ = ['test.md'];
-    mockArgv.themeDir = '/path/to/themes';
+    mockArgv.themeSet = ['/path/to/themes'];
     const argv = parseArgs();
-    expect(argv.themeDir).toBe('/path/to/themes');
+    expect(argv.themeSet).toEqual(['/path/to/themes']);
+  });
+
+  it('should support the theme-dir alias', () => {
+    mockArgv._ = ['test.md'];
+    mockArgv.themeSet = ['/path/to/themes'];
+    const argv = parseArgs();
+    expect(argv.themeSet).toEqual(['/path/to/themes']);
   });
 
   it('should handle config file path', () => {
@@ -86,5 +113,24 @@ describe('Args', () => {
     mockArgv.config = './my-config.json';
     const argv = parseArgs();
     expect(argv.config).toBe('./my-config.json');
+  });
+
+  it('should keep an explicit markdown-file option over the positional argument', () => {
+    mockArgv._ = ['positional.md'];
+    mockArgv.markdownFile = 'flag.md';
+    const argv = parseArgs();
+    expect(argv.markdownFile).toBe('flag.md');
+  });
+
+  it('should return example-config as false by default', () => {
+    mockArgv._ = ['test.md'];
+    const argv = parseArgs();
+    expect(argv.exampleConfig).toBe(false);
+  });
+
+  it('should return example-config as true if specified', () => {
+    mockArgv.exampleConfig = true;
+    const argv = parseArgs();
+    expect(argv.exampleConfig).toBe(true);
   });
 });
